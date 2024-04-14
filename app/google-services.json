@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "869177927887",
+    "project_id": "das-animales",
+    "storage_bucket": "das-animales.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869177927887:android:afc517430f87c6c9462fba",
+        "android_client_info": {
+          "package_name": "com.example.das_animales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuVQh-zal7NUaAuYvIUpg5Ob0AoZTyn7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
