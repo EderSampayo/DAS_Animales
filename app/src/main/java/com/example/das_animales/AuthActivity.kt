@@ -1,12 +1,20 @@
 package com.example.das_animales
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
+import android.Manifest
 
 class AuthActivity : AppCompatActivity() {
     // Declarar elementos de la UI como atributos de la clase
@@ -25,6 +33,11 @@ class AuthActivity : AppCompatActivity() {
         emailEditText = findViewById(R.id.emailEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
 
+        // Obtener permisos
+        obtenerPermisos()
+
+        // Obtener el token de FCM
+        obtenerTokenFCM()
 
         // Setup
         setup()
@@ -76,4 +89,32 @@ class AuthActivity : AppCompatActivity() {
         }
         startActivity(homeIntent)
     }
+
+    private fun obtenerTokenFCM() {
+        // Obtener el token de FCM
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM Token", token ?: "No se pudo obtener el token")
+                // TODO: Enviar el token al servidor si es necesario
+
+            } else {
+                // Fallo al obtener el token
+                Toast.makeText(this, "Error al obtener el token.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun obtenerPermisos() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED) {
+                // PEDIR EL PERMISO
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 11)
+            }
+        }
+
+    }
+
 }

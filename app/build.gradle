@@ -64,4 +64,7 @@ dependencies {
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Añadir la dependencia de FCM
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
 }
