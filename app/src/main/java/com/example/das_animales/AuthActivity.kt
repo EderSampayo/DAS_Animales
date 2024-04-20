@@ -15,6 +15,11 @@ import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
 import android.Manifest
+import android.net.Uri
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 class AuthActivity : AppCompatActivity() {
     // Declarar elementos de la UI como atributos de la clase
@@ -22,6 +27,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
+    private lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +57,7 @@ class AuthActivity : AppCompatActivity() {
                 FirebaseAuth.getInstance()
                     .createUserWithEmailAndPassword(emailEditText.text.toString(), passwordEditText.text.toString()).addOnCompleteListener {
                     if (it.isSuccessful) {
+                        enviarTokenAlServidor(emailEditText.text.toString())
                         navigateToHome(it.result?.user?.email ?: "", ProviderType.BASIC)    // Si no existe el email, se manda un string vacío, aunque nunca debería pasar por la comprobación de antes
                     } else {
                         showAlert()
@@ -94,9 +101,8 @@ class AuthActivity : AppCompatActivity() {
         // Obtener el token de FCM
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM Token", token ?: "No se pudo obtener el token")
-                // TODO: Enviar el token al servidor si es necesario
+                this.token = task.result
+                Log.d("FCM Token", this.token ?: "No se pudo obtener el token")
 
             } else {
                 // Fallo al obtener el token
@@ -117,4 +123,47 @@ class AuthActivity : AppCompatActivity() {
 
     }
 
+    private fun enviarTokenAlServidor(email: String) {
+        Thread {
+            try {
+                val url = URL("http://34.121.128.202:81/registrarToken.php")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+
+                // Crear una URL con parámetros usando Uri.Builder
+                val builder = Uri.Builder()
+                    .appendQueryParameter("usuario", email)
+                    .appendQueryParameter("token", token)
+
+                val parametrosURL = builder.build().encodedQuery
+
+                val outputStream = connection.outputStream
+                outputStream.write(parametrosURL?.toByteArray())
+
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                var line: String?
+                val response = StringBuilder()
+
+                while (reader.readLine().also { line = it } != null) {
+                    response.append(line)
+                }
+
+                // Loggear la respuesta del servidor
+                Log.d("Registro de Token", response.toString())
+
+                outputStream.close()
+                inputStream.close()
+                connection.disconnect()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Error", "Error en la conexión con el servidor", e)
+                runOnUiThread {
+                    Toast.makeText(this, "Error al registrar el token", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
 }
