@@ -71,9 +71,11 @@ class HomeActivity : AppCompatActivity() {
                 val fotoen64 = Base64.encodeToString(fototransformada, Base64.DEFAULT)
 
                 // Crear una URL con parámetros usando Uri.Builder
+                val pUsuario = email
                 val pAnimal = "nombre_animal"  // TODO: Que el usuario introduzca el nombre
 
                 val builder = Uri.Builder()
+                    .appendQueryParameter("usuario", pUsuario)
                     .appendQueryParameter("animal", pAnimal)
                     .appendQueryParameter("foto", fotoen64)
 
