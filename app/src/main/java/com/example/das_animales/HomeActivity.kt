@@ -15,6 +15,8 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
@@ -37,6 +39,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var logOutButton: Button
     private lateinit var sacarFotoButton: Button
     private lateinit var takePictureLauncher: ActivityResultLauncher<Intent>
+    private lateinit var email: String
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var imageAdapter: ImageAdapter
+    private val imageUrls = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +58,7 @@ class HomeActivity : AppCompatActivity() {
         // Setup
         val bundle = intent.extras
         val email = bundle?.getString("email")  // ? porque pueden no existir
+        this.email = bundle?.getString("email").toString()
         val provider = bundle?.getString("provider")
         setup(email?:"", provider?:"")
 
@@ -120,6 +128,12 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
+        // Inicializar RecyclerView y adaptador
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        imageAdapter = ImageAdapter(imageUrls)
+        recyclerView.adapter = imageAdapter
+
 
         // Capturar imagen desde la cámara
         sacarFotoButton.setOnClickListener {
@@ -157,18 +171,43 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun cargarImagenes() {
-        /*
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-        int responseCode = 0;
-        try {
-            responseCode = conn.getResponseCode();
-            if (responseCode == HttpsURLConnection.HTTP_OK) {
-                Bitmap elBitmap = BitmapFactory.decodeStream(conn.getInputStream());
-            }
-        } catch (IOException e) {
-            …
-        }
-        */
+        Thread {
+            try {
+                val url = URL("http://34.121.128.202:81/obtenerFotos.php?usuario=${this.email}")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.doOutput = true
 
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                var line: String?
+                val response = StringBuilder()
+
+                while (reader.readLine().also { line = it } != null) {
+                    response.append(line)
+                }
+
+                // Aquí procesa la respuesta del servidor, en este ejemplo asumimos que el servidor devuelve una lista de URLs separadas por comas.
+                val imageUrls = response.toString().split(",")
+
+                Log.d("Image URLs", imageUrls.toString())
+
+                // Actualizar el adaptador con las nuevas URLs de imágenes
+                runOnUiThread {
+                    imageAdapter.imageUrls.clear()
+                    imageAdapter.imageUrls.addAll(imageUrls)
+                    imageAdapter.notifyDataSetChanged()
+                }
+
+                inputStream.close()
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Error", "Error en la conexión con el servidor", e)
+                runOnUiThread {
+                    Toast.makeText(this@HomeActivity, "Error al cargar las imágenes", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
     }
 }
