@@ -9,11 +9,13 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -44,6 +46,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var imageAdapter: ImageAdapter
     private val imageUrls = mutableListOf<String>()
+    private lateinit var animalNameDialog: AlertDialog
+    private val DIALOG_ANIMAL_NAME_LAYOUT = R.layout.dialog_nombre_animal
+    private var nombreAnimal = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,67 +67,97 @@ class HomeActivity : AppCompatActivity() {
         val provider = bundle?.getString("provider")
         setup(email?:"", provider?:"")
 
+        // Inicializar AlertDialog
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nombre_animal, null)
+        val editTextAnimalName = dialogView.findViewById<EditText>(R.id.editTextAnimalName)
+
+        animalNameDialog = AlertDialog.Builder(this)
+            .setTitle("Introduce el nombre del animal")
+            .setView(dialogView)
+            .setPositiveButton("Aceptar") { _, _ ->
+                val animalName = editTextAnimalName.text.toString()
+                Log.d("Nombre del Animal", animalName)
+                this.nombreAnimal = animalName
+
+                // Lanzar la cámara después de obtener el nombre del animal
+                lanzarCamara()
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+
         // Inicializar takePictureLauncher
         takePictureLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
-                val bundle = result.data!!.extras
-                //val elImageView = findViewById<ImageView>(R.id.imageView)
-                val laminiatura = bundle?.get("data") as Bitmap?
+                if (this.nombreAnimal.isNotEmpty()) {
+                    val bundle = result.data!!.extras
+                    //val elImageView = findViewById<ImageView>(R.id.imageView)
+                    val laminiatura = bundle?.get("data") as Bitmap?
 
-                // Comprimir el Bitmap a formato PNG
-                val stream = ByteArrayOutputStream()
-                laminiatura?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val fototransformada = stream.toByteArray()
+                    // Comprimir el Bitmap a formato PNG
+                    val stream = ByteArrayOutputStream()
+                    laminiatura?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    val fototransformada = stream.toByteArray()
 
-                // Convertir el array de bytes a una cadena Base64
-                val fotoen64 = Base64.encodeToString(fototransformada, Base64.DEFAULT)
+                    // Convertir el array de bytes a una cadena Base64
+                    val fotoen64 = Base64.encodeToString(fototransformada, Base64.DEFAULT)
 
-                // Crear una URL con parámetros usando Uri.Builder
-                val pUsuario = email
-                val pAnimal = "nombre_animal"  // TODO: Que el usuario introduzca el nombre
+                    // Crear una URL con parámetros usando Uri.Builder
+                    val pUsuario = email
+                    //val pAnimal = "nombre_animal"  // TODO: Que el usuario introduzca el nombre
 
-                val builder = Uri.Builder()
-                    .appendQueryParameter("usuario", pUsuario)
-                    .appendQueryParameter("animal", pAnimal)
-                    .appendQueryParameter("foto", fotoen64)
+                    val builder = Uri.Builder()
+                        .appendQueryParameter("usuario", pUsuario)
+                        .appendQueryParameter("animal", this.nombreAnimal)
+                        .appendQueryParameter("foto", fotoen64)
 
-                val parametrosURL = builder.build().encodedQuery
+                    val parametrosURL = builder.build().encodedQuery
 
-                // Enviar la imagen y los parámetros al servidor
-                Thread {
-                    try {
-                        val url = URL("http://34.121.128.202:81/subirFoto.php")
-                        val connection = url.openConnection() as HttpURLConnection
-                        connection.requestMethod = "POST"
-                        connection.doOutput = true
+                    // Enviar la imagen y los parámetros al servidor
+                    Thread {
+                        try {
+                            val url = URL("http://34.121.128.202:81/subirFoto.php")
+                            val connection = url.openConnection() as HttpURLConnection
+                            connection.requestMethod = "POST"
+                            connection.doOutput = true
 
-                        val outputStream = connection.outputStream
-                        outputStream.write(parametrosURL?.toByteArray())
+                            val outputStream = connection.outputStream
+                            outputStream.write(parametrosURL?.toByteArray())
 
-                        val inputStream = connection.inputStream
-                        val reader = BufferedReader(InputStreamReader(inputStream))
-                        var line: String?
-                        val response = StringBuilder()
+                            val inputStream = connection.inputStream
+                            val reader = BufferedReader(InputStreamReader(inputStream))
+                            var line: String?
+                            val response = StringBuilder()
 
-                        while (reader.readLine().also { line = it } != null) {
-                            response.append(line)
+                            while (reader.readLine().also { line = it } != null) {
+                                response.append(line)
+                            }
+
+                            // Manejar la respuesta del servidor si es necesario
+                            Log.d("Respuesta del Servidor", response.toString())
+
+                            // Enviar mensaje FCM a todos los usuarios de la aplicación
+                            notificarUsuarios(this.nombreAnimal)
+
+                            outputStream.close()
+                            inputStream.close()
+                            connection.disconnect()
+
+                            cargarImagenes()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Log.e("Error", "Error en la conexión con el servidor", e)
+                            runOnUiThread {
+                                Toast.makeText(this, "Error al subir la foto", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
-
-                        // Manejar la respuesta del servidor si es necesario
-                        Log.d("Respuesta del Servidor", response.toString())
-
-                        outputStream.close()
-                        inputStream.close()
-                        connection.disconnect()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        Log.e("Error", "Error en la conexión con el servidor", e)
-                        runOnUiThread {
-                            Toast.makeText(this, "Error al subir la foto", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }.start()
+                    }.start()
+                } else {
+                    Toast.makeText(this, "Por favor, introduce el nombre del animal", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Log.d("Foto Sacada", "No has sacado ninguna foto")
             }
@@ -156,6 +191,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun sacarFoto() {
+        animalNameDialog.show()
+    }
+
+    private fun lanzarCamara() {
         if (checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             // Solicitar permiso
             requestPermissions(arrayOf(android.Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION_CODE)
@@ -206,6 +245,42 @@ class HomeActivity : AppCompatActivity() {
                 Log.e("Error", "Error en la conexión con el servidor", e)
                 runOnUiThread {
                     Toast.makeText(this@HomeActivity, "Error al cargar las imágenes", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun notificarUsuarios(pAnimal: String) {
+        Thread {
+            try {
+                val url = URL("http://34.121.128.202:81/notificarUsuarios.php")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+
+                val outputStream = connection.outputStream
+                val postData = "animal=$pAnimal".toByteArray(Charsets.UTF_8)
+                outputStream.write(postData)
+
+                val inputStream = connection.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                var line: String?
+                val response = StringBuilder()
+
+                while (reader.readLine().also { line = it } != null) {
+                    response.append(line)
+                }
+
+                Log.d("Respuesta del Servidor", response.toString())
+
+                outputStream.close()
+                inputStream.close()
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Error", "Error en la conexión con el servidor", e)
+                runOnUiThread {
+                    Toast.makeText(this@HomeActivity, "Error al notificar usuarios", Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()

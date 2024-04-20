@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,65 +6,59 @@
     android:background="@color/background"
     tools:context=".HomeActivity">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/emailTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:orientation="vertical"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:text="Email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/emailTextView"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Email" />
+    <TextView
+        android:id="@+id/providerTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="Proveedor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emailTextView" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="8dp" />
+    <Button
+        android:id="@+id/logOutButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="60dp"
+        android:text="Cerrar Sesión"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/providerTextView" />
 
-        <TextView
-            android:id="@+id/providerTextView"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Proveedor" />
+    <Button
+        android:id="@+id/sacarFotoButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="40dp"
+        android:text="Sacar Foto"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logOutButton" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="8dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/logOutButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="Cerrar Sesión" />
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/sacarFotoButton"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="Sacar Foto" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"/>
-
-    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sacarFotoButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
