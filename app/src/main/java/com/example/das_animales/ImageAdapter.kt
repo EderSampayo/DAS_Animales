@@ -1,12 +1,14 @@
 package com.example.das_animales
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class ImageAdapter(var imageUrls: MutableList<String>) :
+class ImageAdapter(var imageUrls: MutableList<String>, private val locationClickListener: (String) -> Unit) :
     RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -25,6 +27,9 @@ class ImageAdapter(var imageUrls: MutableList<String>) :
         }
 
         Picasso.get().load(fullUrl).into(holder.imageView)
+        holder.obtenerUbicacionButton.setOnClickListener {
+            locationClickListener(imageUrl)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -33,5 +38,6 @@ class ImageAdapter(var imageUrls: MutableList<String>) :
 
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        val obtenerUbicacionButton: Button = itemView.findViewById(R.id.obtenerUbicacionButton)
     }
 }

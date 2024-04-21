@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
@@ -55,6 +56,8 @@ class HomeActivity : AppCompatActivity() {
 
     private var latitud: Double = 0.0
     private var longitud: Double = 0.0
+
+    private val imageLocationMap = mutableMapOf<String, Pair<Double, Double>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -179,7 +182,19 @@ class HomeActivity : AppCompatActivity() {
         // Inicializar RecyclerView y adaptador
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        imageAdapter = ImageAdapter(imageUrls)
+        imageAdapter = ImageAdapter(imageUrls) { imageUrl ->
+            // Aquí puedes manejar el evento de clic en el botón "Obtener ubicación"
+            val location = imageLocationMap[imageUrl]
+            if (location != null) {
+                val latitude = location.first
+                val longitude = location.second
+                // Abrir el Google Maps con la ubicación
+                locationHelper.openGoogleMapsAtLocation(latitude, longitude)
+            } else {
+                Toast.makeText(this, "Ubicación no disponible", Toast.LENGTH_SHORT).show()
+            }
+        }
+        recyclerView.adapter = imageAdapter
         recyclerView.adapter = imageAdapter
 
 
@@ -239,10 +254,29 @@ class HomeActivity : AppCompatActivity() {
                     response.append(line)
                 }
 
-                // Aquí procesa la respuesta del servidor, en este ejemplo asumimos que el servidor devuelve una lista de URLs separadas por comas.
-                val imageUrls = response.toString().split(",")
+                // Parsear el JSON
+                val jsonArray = JSONArray(response.toString())
+                val imageUrls = mutableListOf<String>()
+                val latitudes = mutableListOf<Double>()
+                val longitudes = mutableListOf<Double>()
+
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val imageUrl = jsonObject.getString("foto")
+                    val latitude = jsonObject.getDouble("latitud")
+                    val longitude = jsonObject.getDouble("longitud")
+
+                    imageUrls.add(imageUrl)
+                    latitudes.add(latitude)
+                    longitudes.add(longitude)
+
+                    // Almacenar en el HashMap
+                    imageLocationMap[imageUrl] = Pair(latitude, longitude)
+                }
 
                 Log.d("Image URLs", imageUrls.toString())
+                Log.d("Latitudes", latitudes.toString())
+                Log.d("Longitudes", longitudes.toString())
 
                 // Actualizar el adaptador con las nuevas URLs de imágenes
                 runOnUiThread {
