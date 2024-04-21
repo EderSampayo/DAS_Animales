@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Estilo para el fondo del widget -->
+    <style name="WidgetBackground">
+        <item name="android:background">@android:color/white</item>
+    </style>
+
+    <!-- Estilo para el texto del widget -->
+    <style name="WidgetText">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>
