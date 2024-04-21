@@ -1,5 +1,6 @@
 package com.example.das_animales
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -49,6 +50,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var animalNameDialog: AlertDialog
     private val DIALOG_ANIMAL_NAME_LAYOUT = R.layout.dialog_nombre_animal
     private var nombreAnimal = ""
+    private lateinit var locationHelper: LocationHelper
+    private val REQUEST_CODE_SELECT_LOCATION = 2001
+
+    private var latitud: Double = 0.0
+    private var longitud: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +73,9 @@ class HomeActivity : AppCompatActivity() {
         val provider = bundle?.getString("provider")
         setup(email?:"", provider?:"")
 
+        // Inicializar LocationHelper
+        locationHelper = LocationHelper(this, this)
+
         // Inicializar AlertDialog
         val dialogView = layoutInflater.inflate(R.layout.dialog_nombre_animal, null)
         val editTextAnimalName = dialogView.findViewById<EditText>(R.id.editTextAnimalName)
@@ -79,8 +88,8 @@ class HomeActivity : AppCompatActivity() {
                 Log.d("Nombre del Animal", animalName)
                 this.nombreAnimal = animalName
 
-                // Lanzar la cámara después de obtener el nombre del animal
-                lanzarCamara()
+                // Lanzar la cámara después de obtener el nombre del animal y su ubicación
+                obtenerUbicacion()
             }
             .setNegativeButton("Cancelar") { dialog, _ ->
                 dialog.dismiss()
@@ -112,8 +121,12 @@ class HomeActivity : AppCompatActivity() {
                         .appendQueryParameter("usuario", pUsuario)
                         .appendQueryParameter("animal", this.nombreAnimal)
                         .appendQueryParameter("foto", fotoen64)
+                        .appendQueryParameter("latitud", this.latitud.toString())
+                        .appendQueryParameter("longitud", this.longitud.toString())
 
                     val parametrosURL = builder.build().encodedQuery
+
+                    Log.d("Parametros URL", parametrosURL.toString())
 
                     // Enviar la imagen y los parámetros al servidor
                     Thread {
@@ -284,5 +297,49 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    private val obtenerUbicacion = {
+        if (locationHelper.checkLocationPermission()) {
+            locationHelper.getCurrentLocation { latitude, longitude ->
+                // Actualizar las variables latitud y longitud
+                this.latitud = latitude
+                this.longitud = longitude
+
+                // Continuar con la lógica de sacar la foto después de obtener la ubicación
+                lanzarCamara()
+            }
+        } else {
+            locationHelper.requestLocationPermission()
+        }
+    }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            locationHelper.getLocationPermissionCode() -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    locationHelper.getCurrentLocation { latitude, longitude ->
+                        // Actualizar las variables latitud y longitud
+                        this.latitud = latitude
+                        this.longitud = longitude
+
+                        // Continuar con la lógica de sacar la foto después de obtener la ubicación
+                        lanzarCamara()
+                    }
+                } else {
+                    Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show()
+                }
+            }
+            REQUEST_CAMERA_PERMISSION_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    lanzarCamara()
+                } else {
+                    Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }
