@@ -20,7 +20,7 @@ class MiContentProvider : ContentProvider() {
 
     companion object {
         private const val AUTHORITY = "com.example.das_animales.provider"
-        private val CONTENT_URI = Uri.parse("content://$AUTHORITY/datos")
+        val CONTENT_URI = Uri.parse("content://$AUTHORITY/datos")
 
         private const val DATABASE_NAME = "image_database"
         private const val DATABASE_VERSION = 1

@@ -208,7 +208,7 @@ class HomeActivity : AppCompatActivity() {
         // Inicializar RecyclerView y adaptador
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        imageAdapter = ImageAdapter(imageUrls, animales) { imageUrl ->
+        imageAdapter = ImageAdapter(imageUrls, animales, this.email) { imageUrl ->
             // Aquí puedes manejar el evento de clic en el botón "Obtener ubicación"
             val location = imageLocationMap[imageUrl]
             if (location != null) {
