@@ -1,6 +1,9 @@
 package com.example.das_animales
 
-import android.app.Activity
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -11,7 +14,6 @@ import android.util.Base64
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -28,8 +30,9 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
-import javax.net.ssl.HttpsURLConnection
 
 
 enum class ProviderType {
@@ -62,6 +65,11 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+        //probarDeleteDeMiContentProvider("http://34.121.128.202:81/uploads/IMG_20240422_152327_Pepe.jpg")
+
+        // Configurar el AlarmManager
+        //configurarAlarmManager()
 
         // Elementos del layout XML
         emailTextView = findViewById(R.id.emailTextView)
@@ -118,7 +126,9 @@ class HomeActivity : AppCompatActivity() {
 
                     // Crear una URL con parámetros usando Uri.Builder
                     val pUsuario = email
-                    //val pAnimal = "nombre_animal"  // TODO: Que el usuario introduzca el nombre
+
+                    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                    val nombreUri = "IMG_" + timeStamp + "_" + this.nombreAnimal + ".jpg"
 
                     val builder = Uri.Builder()
                         .appendQueryParameter("usuario", pUsuario)
@@ -126,6 +136,7 @@ class HomeActivity : AppCompatActivity() {
                         .appendQueryParameter("foto", fotoen64)
                         .appendQueryParameter("latitud", this.latitud.toString())
                         .appendQueryParameter("longitud", this.longitud.toString())
+                        .appendQueryParameter("nombreUri", nombreUri)
 
                     val parametrosURL = builder.build().encodedQuery
 
@@ -151,8 +162,24 @@ class HomeActivity : AppCompatActivity() {
                                 response.append(line)
                             }
 
-                            // Manejar la respuesta del servidor si es necesario
+                            // Manejar la respuesta del servidor
                             Log.d("Respuesta del Servidor", response.toString())
+
+                            // Insertar la imagen en el ContentProviderS
+                            val contentResolver = this.contentResolver
+                            val uri = Uri.parse("content://com.example.miaplicacion.provider/datos")
+
+                            val values = ContentValues().apply {
+                                put("image_uri", "http://34.121.128.202:81/uploads/$nombreUri")
+                            }
+
+                            val nuevoUri = contentResolver?.insert(uri, values)
+
+                            if (nuevoUri != null) {
+                                Log.d("ContentProvider", "URI insertada correctamente: $nuevoUri")
+                            } else {
+                                Log.e("ContentProvider", "Error al insertar URI en ContentProvider")
+                            }
 
                             // Enviar mensaje FCM a todos los usuarios de la aplicación
                             notificarUsuarios(this.nombreAnimal)
@@ -376,4 +403,49 @@ class HomeActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun probarDeleteDeMiContentProvider(pUri: String)
+    {
+        // Configurar el ContentResolver
+        val contentResolver = this?.contentResolver
+
+        // Construir la URI con el ID o la URI a eliminar
+        val uriAEliminar = Uri.parse("content://com.example.miaplicacion.provider/datos/$pUri")
+
+        // Llamar al método delete del ContentProvider
+        val filasEliminadas = contentResolver?.delete(uriAEliminar, null, null)
+
+        // Verificar si se eliminó la imagen correctamente
+        if (filasEliminadas != null && filasEliminadas > 0) {
+            Log.d("Delete", "Imagen eliminada correctamente")
+        } else {
+            Log.d("Delete", "No se pudo eliminar la imagen")
+        }
+    }
+
+    /*
+    private fun configurarAlarmManager() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, 20) // Hora en formato 24 horas
+            set(Calendar.MINUTE, 24)
+        }
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+    }
+    */
 }
