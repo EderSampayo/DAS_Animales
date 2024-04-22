@@ -5,10 +5,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class ImageAdapter(var imageUrls: MutableList<String>, private val locationClickListener: (String) -> Unit) :
+class ImageAdapter(var imageUrls: MutableList<String>, var animales: MutableList<String>, private val locationClickListener: (String) -> Unit) :
     RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -18,6 +19,7 @@ class ImageAdapter(var imageUrls: MutableList<String>, private val locationClick
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val imageUrl = imageUrls[position]
+        val animal = animales[position]
 
         // Agregar esquema http si no está presente
         val fullUrl = if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
@@ -27,6 +29,7 @@ class ImageAdapter(var imageUrls: MutableList<String>, private val locationClick
         }
 
         Picasso.get().load(fullUrl).into(holder.imageView)
+        holder.nombreAnimal.text = animal
         holder.obtenerUbicacionButton.setOnClickListener {
             locationClickListener(imageUrl)
         }
@@ -39,5 +42,6 @@ class ImageAdapter(var imageUrls: MutableList<String>, private val locationClick
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
         val obtenerUbicacionButton: Button = itemView.findViewById(R.id.obtenerUbicacionButton)
+        val nombreAnimal: TextView = itemView.findViewById(R.id.nombreAnimal)
     }
 }

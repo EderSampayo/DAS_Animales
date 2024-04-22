@@ -42,7 +42,6 @@ enum class ProviderType {
 class HomeActivity : AppCompatActivity() {
     // Declarar elementos de la UI como atributos de la clase
     private lateinit var emailTextView: TextView
-    private lateinit var providerTextView: TextView
     private lateinit var logOutButton: Button
     private lateinit var sacarFotoButton: Button
     private lateinit var takePictureLauncher: ActivityResultLauncher<Intent>
@@ -51,6 +50,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var imageAdapter: ImageAdapter
     private val imageUrls = mutableListOf<String>()
+    private val animales = mutableListOf<String>()
     private lateinit var animalNameDialog: AlertDialog
     private val DIALOG_ANIMAL_NAME_LAYOUT = R.layout.dialog_nombre_animal
     private var nombreAnimal = ""
@@ -60,7 +60,7 @@ class HomeActivity : AppCompatActivity() {
     private var latitud: Double = 0.0
     private var longitud: Double = 0.0
 
-    private val imageLocationMap = mutableMapOf<String, Pair<Double, Double>>()
+    private val imageLocationMap = mutableMapOf<String, Triple<Double, Double, String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +73,6 @@ class HomeActivity : AppCompatActivity() {
 
         // Elementos del layout XML
         emailTextView = findViewById(R.id.emailTextView)
-        providerTextView = findViewById(R.id.providerTextView)
         logOutButton = findViewById(R.id.logOutButton)
         sacarFotoButton = findViewById(R.id.sacarFotoButton)
 
@@ -167,7 +166,7 @@ class HomeActivity : AppCompatActivity() {
 
                             // Insertar la imagen en el ContentProviderS
                             val contentResolver = this.contentResolver
-                            val uri = Uri.parse("content://com.example.miaplicacion.provider/datos")
+                            val uri = Uri.parse("content://com.example.das_animales.provider/datos")
 
                             val values = ContentValues().apply {
                                 put("image_uri", "http://34.121.128.202:81/uploads/$nombreUri")
@@ -193,8 +192,8 @@ class HomeActivity : AppCompatActivity() {
                             e.printStackTrace()
                             Log.e("Error", "Error en la conexión con el servidor", e)
                             runOnUiThread {
-                                Toast.makeText(this, "Error al subir la foto", Toast.LENGTH_SHORT)
-                                    .show()
+                            Toast.makeText(this@HomeActivity, "Imagen subida correctamente", Toast.LENGTH_SHORT).show()
+                                cargarImagenes()
                             }
                         }
                     }.start()
@@ -209,7 +208,7 @@ class HomeActivity : AppCompatActivity() {
         // Inicializar RecyclerView y adaptador
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        imageAdapter = ImageAdapter(imageUrls) { imageUrl ->
+        imageAdapter = ImageAdapter(imageUrls, animales) { imageUrl ->
             // Aquí puedes manejar el evento de clic en el botón "Obtener ubicación"
             val location = imageLocationMap[imageUrl]
             if (location != null) {
@@ -221,7 +220,6 @@ class HomeActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ubicación no disponible", Toast.LENGTH_SHORT).show()
             }
         }
-        recyclerView.adapter = imageAdapter
         recyclerView.adapter = imageAdapter
 
 
@@ -237,7 +235,6 @@ class HomeActivity : AppCompatActivity() {
     private fun setup(email: String, provider: String) {
         title = "Inicio"
         emailTextView.text = email
-        providerTextView.text = provider
 
         logOutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
@@ -281,26 +278,32 @@ class HomeActivity : AppCompatActivity() {
                     response.append(line)
                 }
 
+                Log.d("Respuesta del Servidor", response.toString())
+
                 // Parsear el JSON
                 val jsonArray = JSONArray(response.toString())
+                val animales = mutableListOf<String>()
                 val imageUrls = mutableListOf<String>()
                 val latitudes = mutableListOf<Double>()
                 val longitudes = mutableListOf<Double>()
 
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
+                    val animal = jsonObject.getString("animal")
                     val imageUrl = jsonObject.getString("foto")
                     val latitude = jsonObject.getDouble("latitud")
                     val longitude = jsonObject.getDouble("longitud")
 
+                    animales.add(animal)
                     imageUrls.add(imageUrl)
                     latitudes.add(latitude)
                     longitudes.add(longitude)
 
                     // Almacenar en el HashMap
-                    imageLocationMap[imageUrl] = Pair(latitude, longitude)
+                    imageLocationMap[imageUrl] = Triple(latitude, longitude, animal)
                 }
 
+                Log.d("Animales", animales.toString())
                 Log.d("Image URLs", imageUrls.toString())
                 Log.d("Latitudes", latitudes.toString())
                 Log.d("Longitudes", longitudes.toString())
@@ -308,7 +311,9 @@ class HomeActivity : AppCompatActivity() {
                 // Actualizar el adaptador con las nuevas URLs de imágenes
                 runOnUiThread {
                     imageAdapter.imageUrls.clear()
+                    imageAdapter.animales.clear()
                     imageAdapter.imageUrls.addAll(imageUrls)
+                    imageAdapter.animales.addAll(animales)
                     imageAdapter.notifyDataSetChanged()
                 }
 

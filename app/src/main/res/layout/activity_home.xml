@@ -17,16 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/providerTextView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="Proveedor"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailTextView" />
-
     <Button
         android:id="@+id/logOutButton"
         android:layout_width="0dp"
@@ -37,7 +27,7 @@
         android:text="Cerrar Sesión"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/providerTextView" />
+        app:layout_constraintTop_toBottomOf="@id/emailTextView" />
 
     <Button
         android:id="@+id/sacarFotoButton"
@@ -59,6 +49,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/sacarFotoButton" />
+        app:layout_constraintTop_toBottomOf="@id/sacarFotoButton"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
