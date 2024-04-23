@@ -17,7 +17,7 @@ class MiServicio : IntentService("MiServicio") {
             NotificationManager::class.java
         ) as NotificationManager
 
-        // Crear el canal de notificación para Android Oreo y versiones posteriores
+        // Crear el canal de notificación
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "animal_notificacion",

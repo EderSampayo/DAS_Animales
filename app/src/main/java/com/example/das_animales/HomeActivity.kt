@@ -164,7 +164,7 @@ class HomeActivity : AppCompatActivity() {
                             // Manejar la respuesta del servidor
                             Log.d("Respuesta del Servidor", response.toString())
 
-                            // Insertar la imagen en el ContentProviderS
+                            // Insertar la imagen en el ContentProvider
                             val contentResolver = this.contentResolver
                             val uri = Uri.parse("content://com.example.das_animales.provider/datos")
 
@@ -209,7 +209,6 @@ class HomeActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         imageAdapter = ImageAdapter(imageUrls, animales, this.email) { imageUrl ->
-            // Aquí puedes manejar el evento de clic en el botón "Obtener ubicación"
             val location = imageLocationMap[imageUrl]
             if (location != null) {
                 val latitude = location.first
@@ -424,7 +423,7 @@ class HomeActivity : AppCompatActivity() {
         if (filasEliminadas != null && filasEliminadas > 0) {
             Log.d("Delete", "Imagen eliminada correctamente")
         } else {
-            Log.d("Delete", "No se pudo eliminar la imagen")
+            Log.d("Delete", "No se ha podido eliminar la imagen")
         }
     }
 

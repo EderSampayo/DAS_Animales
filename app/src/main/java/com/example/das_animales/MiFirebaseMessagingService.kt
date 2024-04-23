@@ -14,22 +14,19 @@ import com.google.firebase.messaging.RemoteMessage
 class MiFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
-        Log.d(TAG, "Refreshed token: $token")
+        Log.d(TAG, "Token actualizado: $token")
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Mostrar notificación o procesar el mensaje recibido
         val title = remoteMessage.notification?.title
         val body = remoteMessage.notification?.body
 
-        // Mostrar la notificación o procesar el mensaje recibido
         mostrarNotificacion(title, body)
     }
 
     private fun mostrarNotificacion(title: String?, body: String?) {
-        // Implementar la lógica para mostrar la notificación
         // Usar NotificationCompat.Builder para construir y mostrar la notificación
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val NOTIFICATION_CHANNEL_ID = "MiCanalDeNotificaciones"

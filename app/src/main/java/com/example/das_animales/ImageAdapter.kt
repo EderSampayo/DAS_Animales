@@ -28,7 +28,7 @@ class ImageAdapter(var imageUrls: MutableList<String>, var animales: MutableList
         val imageUrl = imageUrls[position]
         val animal = animales[position]
 
-        // Agregar esquema http si no está presente
+        // Agregar esquema http si no está
         val fullUrl = if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
             "http://$imageUrl"
         } else {
@@ -58,7 +58,7 @@ class ImageAdapter(var imageUrls: MutableList<String>, var animales: MutableList
                     Log.d("ContentProvider", "Registro eliminado correctamente")
                 } else {
                     Toast.makeText(it.context, "Se ha eliminado la foto del servidor", Toast.LENGTH_SHORT).show()
-                    Log.d("ContentProvider", "No se pudo eliminar el registro del ContentProvider, pero sí del servidor")
+                    Log.d("ContentProvider", "No se ha podido eliminar el registro del ContentProvider, pero sí del servidor")
                 }
 
                 //Eliminar de los datos locales

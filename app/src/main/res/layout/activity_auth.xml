@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/**Extraído de MoureDev
+Vídeo: https://www.youtube.com/watch?v=dpURgJ4HkMk&t=25s
+Autor: https://www.youtube.com/@mouredev
+ **/
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

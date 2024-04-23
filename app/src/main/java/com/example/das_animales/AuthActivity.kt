@@ -21,6 +21,10 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
+/**Extraído de MoureDev
+Vídeo: https://www.youtube.com/watch?v=dpURgJ4HkMk&t=25s
+Autor: https://www.youtube.com/@mouredev
+ **/
 class AuthActivity : AppCompatActivity() {
     // Declarar elementos de la UI como atributos de la clase
     private lateinit var signUpButton: Button
@@ -102,7 +106,7 @@ class AuthActivity : AppCompatActivity() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 this.token = task.result
-                Log.d("FCM Token", this.token ?: "No se pudo obtener el token")
+                Log.d("FCM Token", this.token ?: "No se ha podido obtener el token")
 
             } else {
                 // Fallo al obtener el token
